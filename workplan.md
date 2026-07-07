@@ -288,9 +288,9 @@ Ejemplo:
 | id | endpoint_name | endpoint_url | active | created_at |
 |----|---------------|--------------|--------|------------|
 | 1 | messages | /gmail/v1/users/me/messages | true | /time/ |
-| 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | <time> |
-| 3 | labels | /gmail/v1/users/me/labels | true | <time> |
-| 4 | profile | /gmail/v1/users/me/profile | true | <time> |
+| 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | /time/ |
+| 3 | labels | /gmail/v1/users/me/labels | true | /time/ |
+| 4 | profile | /gmail/v1/users/me/profile | true | /time/ |
 
 ---
 
@@ -334,12 +334,12 @@ Ejemplo:
 
 | id | endpoint_id | version_number | schema_hash | detected_at |
 |----|-------------|----------------|-------------|-------------|
-| 1 | 1 | 1 | <hash> | <time> |
-| 2 | 1 | 2 | <hash> | <time> |
-| 3 | 1 | 3 | <hash> | <time> |
-| 4 | 3 | 1 | <hash> | <time> |
-| 5 | 4 | 1 | <hash> | <time> |
-| 6 | 4 | 2 | <hash> | <time> |
+| 1 | 1 | 1 | /hash/ | /time/ |
+| 2 | 1 | 2 | /hash/ | /time/ |
+| 3 | 1 | 3 | /hash/ | /time/ |
+| 4 | 3 | 1 | /hash/ | /time/ |
+| 5 | 4 | 1 | /hash/ | /time/ |
+| 6 | 4 | 2 | /hash/ | /time/ |
 
 Cada endpoint posee un ciclo de versionado independiente.
 
