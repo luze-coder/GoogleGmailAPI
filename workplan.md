@@ -83,11 +83,18 @@ Serán registrados en la base de datos y procesados dinámicamente por el worker
 
 ## Autenticación
 
-La comunicación con Gmail API se realizará mediante OAuth 2.0.
+La aplicación utilizará OAuth 2.0 para acceder a Gmail API.
 
-```http
-Authorization: Bearer <access_token>
-```
+El worker almacenará un refresh token obtenido previamente durante el proceso inicial de autorización.
+
+Antes de consumir cualquier endpoint:
+
+1. Solicitará un access token utilizando el refresh token.
+2. Utilizará dicho access token para ejecutar las llamadas a Gmail API.
+3. Renovará automáticamente el access token cuando expire.
+
+Las credenciales (client_id, client_secret y refresh_token) serán almacenadas fuera del código fuente utilizando variables de entorno.
+
 
 ## Flujo de Consumo
 
