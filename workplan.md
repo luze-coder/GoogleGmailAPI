@@ -287,7 +287,7 @@ Ejemplo:
 
 | id | endpoint_name | endpoint_url | active | created_at |
 |----|---------------|--------------|--------|------------|
-| 1 | messages | /gmail/v1/users/me/messages | true | <time> |
+| 1 | messages | /gmail/v1/users/me/messages | true | /time/ |
 | 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | <time> |
 | 3 | labels | /gmail/v1/users/me/labels | true | <time> |
 | 4 | profile | /gmail/v1/users/me/profile | true | <time> |
