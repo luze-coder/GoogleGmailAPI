@@ -287,10 +287,10 @@ Ejemplo:
 
 | id | endpoint_name | endpoint_url | active | created_at |
 |----|---------------|--------------|--------|------------|
-| 1 | messages | /gmail/v1/users/me/messages | true | 2026-07-06 09:00:00 |
-| 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | 2026-07-06 09:00:00 |
-| 3 | labels | /gmail/v1/users/me/labels | true | 2026-07-06 09:00:00 |
-| 4 | profile | /gmail/v1/users/me/profile | true | 2026-07-06 09:00:00 |
+| 1 | messages | /gmail/v1/users/me/messages | true | <time> |
+| 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | <time> |
+| 3 | labels | /gmail/v1/users/me/labels | true | <time> |
+| 4 | profile | /gmail/v1/users/me/profile | true | <time> |
 
 ---
 
@@ -334,12 +334,12 @@ Ejemplo:
 
 | id | endpoint_id | version_number | schema_hash | detected_at |
 |----|-------------|----------------|-------------|-------------|
-| 1 | 1 | 1 | a12b34c5f0f9d8a12b34c5f0f9d8a12b34c5f0f9d8a12b34c5f0f9d8a12b34 | 2026-07-06 09:05:00 |
-| 2 | 1 | 2 | d87f12e2c4a6b8d87f12e2c4a6b8d87f12e2c4a6b8d87f12e2c4a6b8d87f12 | 2026-07-06 10:10:00 |
-| 3 | 1 | 3 | e11a22b33c44d55e11a22b33c44d55e11a22b33c44d55e11a22b33c44d55f | 2026-07-06 11:20:00 |
-| 4 | 3 | 1 | 9988aabbccddeeff9988aabbccddeeff9988aabbccddeeff9988aabbccddee | 2026-07-06 09:07:00 |
-| 5 | 4 | 1 | 1122334455667788112233445566778811223344556677881122334455667788 | 2026-07-06 09:09:00 |
-| 6 | 4 | 2 | aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011 | 2026-07-06 12:15:00 |
+| 1 | 1 | 1 | <hash> | <time> |
+| 2 | 1 | 2 | <hash> | <time> |
+| 3 | 1 | 3 | <hash> | <time> |
+| 4 | 3 | 1 | <hash> | <time> |
+| 5 | 4 | 1 | <hash> | <time> |
+| 6 | 4 | 2 | <hash> | <time> |
 
 Cada endpoint posee un ciclo de versionado independiente.
 
