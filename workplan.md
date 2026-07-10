@@ -1,419 +1,307 @@
-# Gmail API Schema Discovery Worker - Work Plan
+# Work Plan - Gmail API Worker para Captura y Versionado de Schema
 
 ## 1. Introducción
 
-### Objetivo
+Este proyecto implementa un worker ejecutable mediante CLI cuya responsabilidad es procesar tareas pendientes asociadas a Gmail API, obtener información desde la API, persistir la respuesta recibida, detectar cambios estructurales en el schema del payload y registrar eventos operativos asociados al procesamiento.
 
-Desarrollar un worker ejecutable desde línea de comandos (CLI) cuya responsabilidad sea consumir uno o más endpoints de Gmail API, almacenar sus respuestas y detectar automáticamente cambios en la estructura (schema) de dichas respuestas.
+El worker forma parte de una arquitectura orientada a tareas y eventos, donde múltiples workers pueden coexistir procesando distintas APIs o dominios funcionales. Cada worker consume únicamente las tareas que le corresponden, evitando procesamiento duplicado mediante mecanismos de locking transaccional.
 
-La aplicación actuará como un repositorio histórico de schemas, permitiendo identificar cuándo un proveedor externo introduce modificaciones en los contratos de sus APIs sin previo aviso.
+### Responsabilidades
 
-### Alcance
+- Consultar tareas pendientes asignadas al worker.
+- Tomar la tarea de forma exclusiva.
+- Consumir Gmail API.
+- Persistir el payload recibido.
+- Inferir y calcular el schema del payload.
+- Detectar cambios estructurales.
+- Versionar schemas cuando corresponda.
+- Generar eventos operativos.
+- Marcar tareas como resueltas.
 
-El worker deberá:
+### Stack Tecnológico
 
-- Consumir endpoints configurados de Gmail API.
-- Almacenar las respuestas obtenidas.
-- Generar automáticamente un schema a partir de cada respuesta JSON.
-- Calcular un hash representativo del schema generado.
-- Comparar dicho hash contra la última versión registrada para el endpoint correspondiente.
-- Crear una nueva versión únicamente cuando exista un cambio estructural.
-- Mantener un historial auditable de schemas por endpoint.
-
-### Fuera de Alcance
-
-La aplicación no realizará:
-
-- Procesamiento de negocio.
-- Transformación de datos.
-- Validación funcional de los payloads.
-- Sincronización de información hacia otros sistemas.
-
-Su única responsabilidad será capturar, almacenar y versionar schemas.
-
-### Stack Propuesto
-
-- Lenguaje: Node.js + TypeScript
-- Cliente HTTP: Fetch
-- Base de datos: PostgreSQL
-- Cliente PostgreSQL: pg
+- Runtime: Node.js + TypeScript
+- Cliente HTTP: Fetch API nativo
 - CLI: Commander.js
+- Base de datos: PostgreSQL
+- Cliente DB: pg
+- Hashing: SHA-256 mediante módulo crypto
 - Logging: console.log
-- Hashing: crypto (nativo de Node.js)
 
 ### Persistencia
 
-Se almacenarán:
+La solución utiliza PostgreSQL para almacenar:
 
-- Endpoints monitoreados.
-- Respuestas obtenidas desde Gmail API.
-- Schemas inferidos.
-- Hashes de schemas.
-- Versiones históricas por endpoint.
+- Cola de tareas
+- Eventos operativos
+- Assets capturados
+- Versiones de schema
+- Snapshots históricos
 
 ---
 
-# 2. API Externa
+## 2. Gmail API
 
-## Fuente de Datos
+### Proveedor
 
-Google Gmail API.
+Google Workspace Gmail API
 
-## Endpoints
+### Base URL
 
-El worker deberá ser capaz de consumir cualquier endpoint configurado de Gmail API.
+```text
+https://gmail.googleapis.com
+```
 
-Ejemplos:
+### Endpoint seleccionado
+
+Listado de mensajes de una cuenta Gmail.
 
 ```http
 GET /gmail/v1/users/me/messages
-
-GET /gmail/v1/users/me/messages/{messageId}
-
-GET /gmail/v1/users/me/labels
-
-GET /gmail/v1/users/me/profile
-
-GET /gmail/v1/users/me/history
 ```
 
-Los endpoints no estarán definidos de forma fija dentro de la aplicación.
+### Request
 
-Serán registrados en la base de datos y procesados dinámicamente por el worker.
-
-## Autenticación
-
-La aplicación utilizará OAuth 2.0 para acceder a Gmail API.
-
-El worker almacenará un refresh token obtenido previamente durante el proceso inicial de autorización.
-
-Antes de consumir cualquier endpoint:
-
-1. Solicitará un access token utilizando el refresh token.
-2. Utilizará dicho access token para ejecutar las llamadas a Gmail API.
-3. Renovará automáticamente el access token cuando expire.
-
-Las credenciales (client_id, client_secret y refresh_token) serán almacenadas fuera del código fuente utilizando variables de entorno.
-
-
-## Flujo de Consumo
-
-Para cada endpoint configurado:
-
-```text
-Endpoint Configurado
-        |
-        v
-Request Gmail API
-        |
-        v
-Respuesta JSON
-        |
-        v
-Persistencia
-        |
-        v
-Inferencia de Schema
-        |
-        v
-Generación de Hash
-        |
-        v
-Comparación de Versiones
+```http
+GET https://gmail.googleapis.com/gmail/v1/users/me/messages
+Authorization: Bearer <access_token>
 ```
 
----
+### Parámetros soportados
 
-# 3. Descubrimiento y Versionado de Schema
-
-## Generación de Schema
-
-Cada respuesta recibida desde Gmail API será recorrida recursivamente para generar una representación estructural de su contenido.
+| Parámetro | Tipo | Descripción |
+|------------|------|-------------|
+| maxResults | integer | Cantidad máxima de mensajes |
+| pageToken | string | Token de paginación |
+| q | string | Query Gmail |
+| labelIds | string[] | Filtro por etiquetas |
 
 Ejemplo:
 
-Payload recibido:
-
-```json
-{
-  "id": "123",
-  "threadId": "456",
-  "labelIds": ["INBOX"],
-  "unread": true
-}
+```http
+GET /gmail/v1/users/me/messages?maxResults=100&q=has:attachment
 ```
 
-Schema inferido:
+### Response esperada
 
 ```json
 {
-  "id": "string",
-  "threadId": "string",
-  "labelIds": [
-    "string"
+  "messages": [
+    {
+      "id": "18c1ea4b76",
+      "threadId": "18c1ea4b76"
+    }
   ],
-  "unread": "boolean"
+  "nextPageToken": "abc123",
+  "resultSizeEstimate": 2450
 }
 ```
 
-El schema representa exclusivamente la estructura del JSON y no sus valores.
+### Campos clave
 
-## Generación de Hash
+| Campo | Tipo | Uso |
+|---------|------|------|
+| messages | array | Lista de mensajes |
+| messages[].id | string | Identificador único |
+| messages[].threadId | string | Conversación asociada |
+| nextPageToken | string | Continuación de paginación |
+| resultSizeEstimate | integer | Cantidad estimada |
 
-Una vez inferido el schema, se generará un hash SHA-256 que será utilizado como mecanismo de comparación.
+### Autenticación
 
-Ejemplo:
+La integración utiliza OAuth 2.0.
 
-Schema:
+Las credenciales se almacenan fuera del código fuente y se consumen durante la ejecución del worker.
 
-```json
-{
-  "id": "string",
-  "threadId": "string"
-}
-```
+Componentes necesarios:
 
-Hash generado:
+- Client ID
+- Client Secret
+- Refresh Token
 
-```text
-a12b34c5f0f9d8...
-```
-
-Este hash representa la versión estructural del endpoint en ese momento.
-
-## Comparación
-
-Cada endpoint mantendrá su propio historial de versiones.
-
-Al obtener una nueva respuesta:
-
-1. Se genera el schema.
-2. Se calcula el hash.
-3. Se obtiene el último hash registrado para ese endpoint.
-4. Se comparan ambos valores.
-
-### Sin Cambios
-
-```text
-hash_actual == hash_registrado
-```
-
-Resultado:
-
-- Se almacena la respuesta.
-- No se genera una nueva versión.
-
-### Con Cambios
-
-```text
-hash_actual != hash_registrado
-```
-
-Resultado:
-
-- Se crea una nueva versión.
-- Se almacena un snapshot completo del nuevo schema.
-- Se registra el nuevo hash.
-- Se mantiene el historial de versiones anterior.
-
-## Ejemplo
-
-Schema V1:
-
-```json
-{
-  "id": "string",
-  "threadId": "string"
-}
-```
-
-Hash:
-
-```text
-a12b34c5
-```
-
-Schema V2:
-
-```json
-{
-  "id": "string",
-  "threadId": "string",
-  "labelIds": [
-    "string"
-  ]
-}
-```
-
-Hash:
-
-```text
-d87f12e2
-```
-
-Resultado:
-
-```text
-a12b34c5 != d87f12e2
-```
-
-Se genera una nueva versión del schema para dicho endpoint.
+El worker obtiene un Access Token válido antes de realizar cada solicitud.
 
 ---
 
-# 4. Modelo de Datos y Base de Datos
+## 3. Flujo Operativo
 
-## Motor de Base de Datos
+El worker no consume Gmail API continuamente.
 
-PostgreSQL.
+En cada ejecución:
+
+1. Busca una tarea pendiente.
+2. Bloquea la tarea.
+3. Consume Gmail API.
+4. Guarda la respuesta.
+5. Calcula el schema.
+6. Detecta cambios.
+7. Versiona si corresponde.
+8. Genera eventos.
+9. Marca la tarea como finalizada.
+
+### Flujo General
+
+```text
+Worker CLI
+    |
+    v
+Buscar tarea pendiente
+    |
+    v
+Tomar lock exclusivo
+    |
+    v
+Consumir Gmail API
+    |
+    v
+Guardar payload en assets
+    |
+    v
+Inferir schema
+    |
+    v
+Calcular hash
+    |
+    +------ igual ------> continuar
+    |
+    +------ distinto ---> versionar
+    |
+    v
+Registrar evento
+    |
+    v
+Completar tarea
+```
 
 ---
 
-## Tabla: api_endpoints
+## 4. Versionado de Schema
 
-Catálogo de endpoints monitoreados.
+Gmail API es un servicio de terceros y la estructura de sus respuestas puede cambiar con el tiempo. Dado que el worker consume y almacena información sin controlar el origen de los datos, resulta necesario mantener un historial de los schemas detectados.
 
-```sql
-CREATE TABLE api_endpoints (
-    id BIGSERIAL PRIMARY KEY,
-    endpoint_name VARCHAR(100) NOT NULL,
-    endpoint_url VARCHAR(500) NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+Cada respuesta obtenida es analizada para identificar su estructura. A partir de dicha estructura se genera una representación consistente que permite compararla con versiones previamente registradas.
 
-Ejemplo:
+Cuando se detecta una diferencia estructural, el sistema genera una nueva versión de schema y almacena una copia de referencia (snapshot) para conservar evidencia histórica del cambio.
 
-| id | endpoint_name | endpoint_url | active | created_at |
-|----|---------------|--------------|--------|------------|
-| 1 | messages | /gmail/v1/users/me/messages | true | /time/ |
-| 2 | message_detail | /gmail/v1/users/me/messages/{messageId} | true | /time/ |
-| 3 | labels | /gmail/v1/users/me/labels | true | /time/ |
-| 4 | profile | /gmail/v1/users/me/profile | true | /time/ |
+### Regla de Versionado
 
+- Si la estructura no cambia, no se genera una nueva versión.
+- Si la estructura cambia, se registra una nueva versión y su correspondiente snapshot.
 ---
 
-## Tabla: api_responses
+## 5. Modelo de Datos
 
-Almacena el payload completo obtenido desde el endpoint.
+La solución utiliza PostgreSQL para almacenar tareas, eventos, respuestas capturadas y versiones de schema.
 
-```sql
-CREATE TABLE api_responses (
-    id BIGSERIAL PRIMARY KEY,
-    endpoint_id BIGINT NOT NULL,
-    fetched_at TIMESTAMP NOT NULL,
-    payload JSONB NOT NULL,
-    schema_version_id BIGINT NULL
-);
-```
+### task_queue
+
+Almacena las tareas pendientes que serán procesadas por los distintos workers.
 
 Responsabilidades:
 
-- Mantener un histórico de respuestas.
-- Permitir auditoría y análisis posterior.
-- Asociar la respuesta con la versión de schema vigente al momento de su captura.
+- Coordinar la ejecución de workers.
+- Evitar procesamiento duplicado.
+- Registrar asignación y resolución de tareas.
+- Determinar qué endpoint debe consumirse.
 
 ---
 
-## Tabla: schema_versions
+### assets
 
-Mantiene el historial de versiones por endpoint.
+Almacena los payloads obtenidos desde Gmail API.
 
-```sql
-CREATE TABLE schema_versions (
-    id BIGSERIAL PRIMARY KEY,
-    endpoint_id BIGINT NOT NULL,
-    version_number INTEGER NOT NULL,
-    schema_hash VARCHAR(64) NOT NULL,
-    detected_at TIMESTAMP NOT NULL
-);
-```
+Responsabilidades:
 
-Ejemplo:
-
-| id | endpoint_id | version_number | schema_hash | detected_at |
-|----|-------------|----------------|-------------|-------------|
-| 1 | 1 | 1 | /hash/ | /time/ |
-| 2 | 1 | 2 | /hash/ | /time/ |
-| 3 | 1 | 3 | /hash/ | /time/ |
-| 4 | 3 | 1 | /hash/ | /time/ |
-| 5 | 4 | 1 | /hash/ | /time/ |
-| 6 | 4 | 2 | /hash/ | /time/ |
-
-Cada endpoint posee un ciclo de versionado independiente.
+- Persistir la respuesta original.
+- Mantener histórico de capturas.
+- Asociar cada captura a la tarea que la generó.
+- Permitir trazabilidad sobre los datos obtenidos.
 
 ---
 
-## Tabla: schema_snapshots
+### schema_versions
 
-Almacena la representación completa del schema correspondiente a cada versión.
+Mantiene el historial de versiones detectadas para cada endpoint monitoreado.
 
-```sql
-CREATE TABLE schema_snapshots (
-    id BIGSERIAL PRIMARY KEY,
-    schema_version_id BIGINT NOT NULL,
-    schema_definition JSONB NOT NULL
-);
-```
+Responsabilidades:
 
-Ejemplo:
-
-```json
-{
-  "id": "string",
-  "threadId": "string",
-  "labelIds": [
-    "string"
-  ]
-}
-```
-
-Esta tabla permite reconstruir cualquier versión histórica del schema.
+- Registrar cambios de schema.
+- Asociar cada versión a un hash único.
+- Mantener numeración secuencial de versiones.
 
 ---
 
-# Flujo General
+### schema_snapshots
 
-```text
-CLI
- |
- v
-Obtener Endpoints Activos
- |
- v
-Consumir Gmail API
- |
- v
-Guardar Payload
- |
- v
-Inferir Schema
- |
- v
-Calcular Hash SHA-256
- |
- v
-Buscar Última Versión del Endpoint
- |
- +---- Hash Igual -----------------> Fin
- |
- +---- Hash Diferente -------------> Crear Nueva Versión
-                                     |
-                                     +-> Guardar Hash
-                                     |
-                                     +-> Guardar Snapshot
-                                     |
-                                     +-> Asociar Respuesta
-```
+Almacena la representación completa del schema correspondiente a una versión determinada.
+
+Responsabilidades:
+
+- Conservar evidencia histórica.
+- Permitir comparar versiones anteriores.
+- Facilitar análisis de cambios en la estructura de respuesta.
 
 ---
 
-# Consideraciones de Diseño
+### worker_events
 
-- Cada endpoint mantiene un historial de schemas independiente.
-- Los payloads originales se almacenan sin modificaciones.
-- El versionado se basa exclusivamente en cambios estructurales.
-- La comparación utiliza hashes de schema para minimizar procesamiento.
-- Toda versión generada debe poder ser auditada y reconstruida desde la base de datos.
-- El worker podrá ejecutarse manualmente o mediante un scheduler externo (Cron, Kubernetes Job, Jenkins, etc.).
+Almacena eventos operativos generados durante la ejecución.
+
+Ejemplos:
+
+- TaskAssigned
+- AssetCaptured
+- SchemaVersionCreated
+- TaskCompleted
+- TaskFailed
+
+Responsabilidades:
+
+- Auditar la ejecución del worker.
+- Consultar estado de procesamiento.
+- Identificar último trabajo ejecutado.
+- Notificar eventos producidos por el sistema.
+---
+
+## 6. Control de Concurrencia
+
+La arquitectura contempla la existencia de múltiples workers ejecutándose simultáneamente.
+
+Para evitar que dos workers procesen una misma tarea, cada tarea debe ser tomada de manera exclusiva antes de comenzar su ejecución.
+
+Una vez asignada, la tarea queda bloqueada para el resto de los workers hasta que finalice su procesamiento.
+
+Este mecanismo garantiza:
+
+- Procesamiento único por tarea.
+- Ausencia de trabajo duplicado.
+- Consistencia en la generación de assets.
+- Correcta emisión de eventos.
+- Trazabilidad del procesamiento realizado por cada worker.
+---
+
+## 7. Consultas Operativas
+
+La información almacenada por el sistema permite consultar el estado operativo de los workers y el historial de procesamiento realizado.
+
+Entre las consultas más relevantes se incluyen:
+
+### Seguimiento de eventos
+
+Permite identificar eventos generados durante la ejecución de los workers, tales como:
+
+- Asignación de tareas.
+- Captura de assets.
+- Detección de nuevas versiones de schema.
+- Finalización de tareas.
+- Errores de procesamiento.
+
+### Actividad de un worker
+
+Permite conocer qué tareas fueron procesadas por un worker específico y cuáles fueron los eventos generados durante su ejecución.
+
+### Última tarea procesada
+
+Permite identificar la última tarea resuelta por un worker y consultar su estado final.
+
+Estas capacidades facilitan tareas de monitoreo, auditoría y diagnóstico operativo.
