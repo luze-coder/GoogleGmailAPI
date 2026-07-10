@@ -20,13 +20,13 @@ El worker forma parte de una arquitectura orientada a tareas y eventos, donde m�
 
 ### Stack Tecnológico
 
-- Runtime: Node.js + TypeScript
-- Cliente HTTP: Fetch API nativo
-- CLI: Commander.js
-- Base de datos: PostgreSQL
-- Cliente DB: pg
-- Hashing: SHA-256 mediante módulo crypto
-- Logging: console.log
+Lenguaje: Rust
+HTTP: reqwest
+OAuth: oauth2
+JSON: serde
+Base de datos: PostgreSQL
+Hashes: sha2
+Logs: println! o tracing
 
 ### Persistencia
 
