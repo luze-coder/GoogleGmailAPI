@@ -305,3 +305,23 @@ Permite conocer qué tareas fueron procesadas por un worker específico y cuále
 Permite identificar la última tarea resuelta por un worker y consultar su estado final.
 
 Estas capacidades facilitan tareas de monitoreo, auditoría y diagnóstico operativo.
+
+---
+
+## 8. Calendario de Consignación de Artefactos
+
+Se define un calendario resumido de entregas, con cierre del proyecto antes del 04/08/2026.
+
+| Orden de realizacion | Fecha objetivo | Artefacto a consignar |
+|------|----------------|------------------------|
+| 1 | 18/07/2026 | Alcance aprobado + contrato base + workplan |
+| 2 | 25/07/2026 | Diseño técnico (modelo de datos y flujo) |
+| 3 | 31/07/2026 | Worker CLI funcional (captura, persistencia y eventos) |
+| 4 | 03/08/2026 | Validación final (versionado de schema + evidencia end-to-end) |
+
+### Artefactos esperados por etapa
+
+- Documentación técnica actualizada.
+- Definición del esquema de base de datos.
+- Código fuente del worker en Rust.
+- Evidencia de ejecución y resultados.
