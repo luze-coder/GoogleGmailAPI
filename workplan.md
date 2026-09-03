@@ -308,18 +308,7 @@ Estas capacidades facilitan tareas de monitoreo, auditoría y diagnóstico opera
 
 ---
 
-## 8. Calendario de Consignación de Artefactos
-
-Se define un calendario resumido de entregas, con cierre del proyecto antes del 04/08/2026.
-
-| Orden de realizacion | Fecha objetivo | Artefacto a consignar |
-|------|----------------|------------------------|
-| 1 | 18/07/2026 | Alcance aprobado + contrato base + workplan |
-| 2 | 25/07/2026 | Diseño técnico (modelo de datos y flujo) |
-| 3 | 31/07/2026 | Worker CLI funcional (captura, persistencia y eventos) |
-| 4 | 03/08/2026 | Validación final (versionado de schema + evidencia end-to-end) |
-
-### Artefactos esperados por etapa
+## 8. Artefactos esperados 
 
 - Documentación técnica actualizada.
 - Definición del esquema de base de datos.
