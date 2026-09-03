@@ -49,21 +49,10 @@ Se considerará cumplido el contrato cuando:
 4. El sistema detecte correctamente cambio y no cambio de schema.
 5. Se mantenga trazabilidad de la tarea procesada.
 
-## 6. Plazo
-
-- **Fecha de inicio:** [20/07/2026]
-- **Fecha de entrega:** [04/08/2026]
-
-Las fechas podrán ajustarse por acuerdo entre las partes.
-
-## 7. Exclusiones
+## 6. Exclusiones
 
 No se incluye en este contrato, salvo acuerdo adicional:
 
 - Desarrollo de interfaz gráfica (frontend).
 - Despliegue productivo en infraestructura final.
 - Soporte posterior a la entrega fuera del período académico o acordado.
-
-## 8. Confidencialidad y credenciales
-
-Las credenciales OAuth y cualquier dato sensible deberán almacenarse fuera del código fuente y no deberán publicarse en repositorios abiertos.
