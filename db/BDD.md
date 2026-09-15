@@ -132,7 +132,7 @@ Registra los eventos generados durante la ejecución del worker.
 
 
 ```markdown
-../images/GoogleGmail_ModeloDeDatos.png
+./images/GoogleGmail_ModeloDeDatos.png
 ```
 
 ## Flujo de datos
