@@ -131,9 +131,7 @@ Registra los eventos generados durante la ejecución del worker.
 ## Diagrama entidad-relación
 
 
-```markdown
-./images/GoogleGmail_ModeloDeDatos.png
-```
+![Diagrama entidad-relación](../images/GoogleGmail_ModeloDeDatos.png)
 
 ## Flujo de datos
 
