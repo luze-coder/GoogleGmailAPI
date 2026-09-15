@@ -24,13 +24,13 @@ Lenguaje: Rust
 HTTP: reqwest
 OAuth: oauth2
 JSON: serde
-Base de datos: PostgreSQL
+Base de datos: SQLite3
 Hashes: sha2
 Logs: println! o tracing
 
 ### Persistencia
 
-La solución utiliza PostgreSQL para almacenar:
+La solución utiliza SQLite3 para almacenar:
 
 - Cola de tareas
 - Eventos operativos
@@ -191,7 +191,7 @@ Cuando se detecta una diferencia estructural, el sistema genera una nueva versi�
 
 ## 5. Modelo de Datos
 
-La solución utiliza PostgreSQL para almacenar tareas, eventos, respuestas capturadas y versiones de schema.
+La solución utiliza SQLite3 para almacenar tareas, eventos, respuestas capturadas y versiones de schema.
 
 ### task_queue
 

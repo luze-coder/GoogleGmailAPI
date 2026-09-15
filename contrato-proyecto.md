@@ -26,7 +26,7 @@ El proyecto debe incluir, como mínimo:
 
 1. Toma exclusiva de tareas pendientes con control de concurrencia.
 2. Consumo del endpoint `GET /gmail/v1/users/me/messages`.
-3. Persistencia de respuesta completa en base de datos PostgreSQL.
+3. Persistencia de respuesta completa en base de datos SQLite3.
 4. Cálculo de hash de schema para detección de cambios.
 5. Versionado de schema cuando exista diferencia estructural.
 6. Registro de eventos operativos (asignación, captura, versionado, finalización, error).
