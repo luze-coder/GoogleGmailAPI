@@ -172,7 +172,7 @@ SELECT * FROM task_queue;
 
 Confirmar que no hay dos tareas con el mismo `id` procesadas dos veces, y que cada una tiene un `locked_by` consistente con el worker que la completó.
 
-[consola - sin duplicados de asignación](../images/09-verificacion1.png)
+![consola - sin duplicados de asignación](../images/09-verificacion1.png)
 
 ```sql
 SELECT task_id, event_type, created_at FROM worker_events
