@@ -1,6 +1,6 @@
 # Evidencias de Implementación
 
-Este documento reúne la evidencia de ejecución del proyecto, requerida por el contrato ([contrato-proyecto.md](../contrato-proyecto.md)). Cada punto indica qué capturar, con qué comando/consulta generarlo, y dónde guardar la imagen (`images/`).
+Este documento reúne la evidencia de ejecución del proyecto, requerida por el contrato ([contrato-proyecto.md](../contrato-proyecto.md)).
 
 ---
 
