@@ -73,7 +73,7 @@ cargo run -- --list-tasks
 
 La tarea procesada debe figurar con `status = 3` (COMPLETED) y `completed_at` seteado.
 
-![list-tasks tarea completada](../images/05-list-processed.png)
+![list-tasks tarea completada](../images/05-list-proccessed.png)
 
 ---
 
